@@ -2084,7 +2084,33 @@ function confirmZelleOrder() {
   showPaySuccess('Zelle', '');
 }
 
+function sendOrderEmail(method, buyerName) {
+  var itens = cart.map(function(p) {
+    var qty = p.qty || 1;
+    var unit = (p.genus === 'Trichocereus') ? 'pack(s)' : 'semente(s)';
+    return qty + 'x ' + p.name + ' — $' + (p.cartPrice || p.price * qty).toFixed(2) + ' (' + unit + ')';
+  }).join('\n');
+
+  var dados = {
+    _subject: '🌱 Novo Pedido - Global Seed Co',
+    _captcha: 'false',
+    _template: 'box',
+    Comprador: buyerName || 'Não informado',
+    Pagamento: method,
+    Total: '$' + _checkoutTotal.toFixed(2),
+    Itens: itens,
+    Data: new Date().toLocaleString('pt-BR')
+  };
+
+  fetch('https://formsubmit.co/ajax/chavinherbalists.sales@gmail.com', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(dados)
+  }).catch(function(err) { console.log('Email erro:', err); });
+}
+
 function showPaySuccess(method, buyerName) {
+  sendOrderEmail(method, buyerName);
   document.getElementById('payMethods').style.display = 'none';
   document.getElementById('zellePanel').style.display = 'none';
   var el = document.getElementById('paySuccess');
